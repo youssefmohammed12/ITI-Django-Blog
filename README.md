@@ -390,4 +390,4 @@ SOFTWARE.
 
 ---
 
-> **Built with ❤️ using Django** — A learning project for ITI Day 17.
+> **Built with ❤️ using Django** — Thanks to our instructor for her hard work at teaching us.
