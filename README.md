@@ -9,9 +9,9 @@
 
 ## 📖 Description
 
-A **CRUD Blog Application** built with **Django** — created as a learning project to understand Django's core concepts including **templates**, **static files**, **ModelForms**, **function-based views**, **URL routing**, and **database models**.
+A **CRUD Blog Application** built with **Django** — created as a learning project to understand Django's core concepts including **templates**, **static files**, **ModelForms**, **Generic Class-Based Views**, **URL routing**, **database models**, **authentication**, **environment variables**, and **deployment preparation**.
 
-This project demonstrates a complete **Create, Read, Update, Delete** workflow for blog posts, with a clean and responsive user interface powered by custom CSS.
+This project demonstrates a complete **Create, Read, Update, Delete** workflow for blog posts, with user authentication, a post detail page, and a clean responsive UI powered by custom CSS.
 
 ---
 
@@ -30,6 +30,12 @@ This project demonstrates a complete **Create, Read, Update, Delete** workflow f
 - ✅ **Responsive UI** — Mobile-friendly layout with max-width container and clean card-based design.
 - ✅ **SQLite database** — Lightweight, file-based database for development.
 - ✅ **Django Admin** — Manage Authors and Posts through the built-in admin interface.
+- ✅ **Authentication** — Users can log in and log out using Django's built-in authentication system.
+- ✅ **Protected CRUD operations** — Creating, editing, and deleting posts requires users to be logged in.
+- ✅ **Generic Class-Based Views** — Views are implemented using Django's `ListView`, `DetailView`, `CreateView`, `UpdateView`, and `DeleteView`.
+- ✅ **Post detail page** — Clicking "Read More" opens a full-page view of the complete blog post.
+- ✅ **Environment variables** — Sensitive settings like `SECRET_KEY` and `DEBUG` are loaded from a `.env` file using `python-decouple`.
+- ✅ **Deployment-ready static files** — Configured `STATIC_ROOT` with `collectstatic` support for production deployments.
 
 ---
 
@@ -60,12 +66,16 @@ myLab/
 │   │       └── style.css          # Custom CSS styles
 │   │
 │   ├── templates/
-│   │   └── blog/
-│   │       ├── base.html          # Base template (inherited by all pages)
-│   │       ├── post_list.html      # Homepage — lists all posts
-│   │       ├── post_form.html      # Create new post form
-│   │       ├── edit_post.html      # Edit existing post form
-│   │       └── delete_post.html    # Delete post confirmation page
+│   │   ├── blog/
+│   │   │   ├── base.html          # Base template (inherited by all pages)
+│   │   │   ├── post_list.html      # Homepage — lists all posts
+│   │   │   ├── post_detail.html    # Post detail page (full article)
+│   │   │   ├── post_form.html      # Create/Edit post form
+│   │   │   ├── edit_post.html      # Edit existing post form
+│   │   │   └── delete_post.html    # Delete post confirmation page
+│   │   │
+│   │   └── registration/
+│   │       └── login.html          # Login page
 │   │
 │   ├── __init__.py
 │   ├── admin.py                   # Django Admin registration
@@ -74,7 +84,7 @@ myLab/
 │   ├── models.py                  # Author and Post models
 │   ├── tests.py                   # Test stubs
 │   ├── urls.py                    # App-level URL routes
-│   └── views.py                   # View functions
+│   └── views.py                   # Generic Class-Based Views
 │
 ├── myLab/                         # Project configuration
 │   ├── __init__.py
@@ -83,9 +93,12 @@ myLab/
 │   ├── urls.py                    # Root URL configuration
 │   └── wsgi.py                    # WSGI config
 │
+├── .env                           # Environment variables (not committed)
+├── .gitignore                     # Git ignore rules
 ├── db.sqlite3                     # SQLite database file
 ├── manage.py                      # Django management script
 ├── requirements.txt               # Python dependencies
+├── staticfiles/                   # Collected static files (for deployment)
 └── README.md                      # Project documentation
 ```
 
@@ -121,39 +134,54 @@ myLab/
 
 - Lists **all blog posts** in reverse chronological order.
 - Each post card displays:
-  - **Title**
+  - **Title** (clickable, links to the post detail page)
   - **Author name** (via `post.author.name`)
   - **Published date** (formatted with `|date:"F d, Y"`)
   - **Body preview** (truncated to 25 words with `|truncatewords:25`)
-- Includes a **"Create New Post"** button to navigate to the creation form.
-- Each post has an **"Edit"** button to navigate to the edit form.
+- Each post has a **"Read More"** button to open the full article.
+- If the user is logged in, **Edit** and **Delete** buttons are also shown.
 - Extends `base.html` for consistent layout.
+
+### 📄 Post Detail (`/post/<id>/`)
+
+- Displays the **full blog post** with complete body content.
+- Shows the **author name** and **publication date**.
+- Body is rendered with `|linebreaks` for proper paragraph formatting.
+- If the user is logged in, **Edit** and **Delete** buttons are shown.
+- Includes a **"Back"** button to return to the home page.
+- Extends `base.html`.
 
 ### ➕ Create Post (`/create/`)
 
+- Uses a **Generic Class-Based View** (`CreateView`) with `LoginRequiredMixin`.
 - Displays a **ModelForm** for creating a new post.
 - Fields: Title, Body, Published On, Author (dropdown).
 - **GET request** — renders an empty form.
 - **POST request** — validates and saves the form, then redirects to the home page.
+- Requires the user to be **logged in** to access.
 - Includes **CSRF token** for security.
 - Extends `base.html`.
 
 ### ✏️ Edit Post (`/edit/<id>/`)
 
-- Pre-populates the form with the **existing post data** using `instance=post`.
+- Uses a **Generic Class-Based View** (`UpdateView`) with `LoginRequiredMixin`.
+- Pre-populates the form with the **existing post data**.
 - **GET request** — renders the form with current values.
 - **POST request** — validates and updates the post, then redirects to the home page.
+- Requires the user to be **logged in** to access.
 - Includes a **Cancel** button to return to the home page.
 - Includes **CSRF token** for security.
 - Extends `base.html`.
 
 ### 🗑 Delete Post (`/delete/<id>/`)
 
+- Uses a **Generic Class-Based View** (`DeleteView`) with `LoginRequiredMixin`.
 - Displays a **confirmation page** asking the user to confirm the deletion.
 - Shows the **post title** so the user knows exactly what they are deleting.
 - **GET request** — renders the confirmation form.
 - **POST request** — deletes the post and redirects to the home page.
 - Deletion is **only performed after submitting the confirmation form**, preventing accidental removals.
+- Requires the user to be **logged in** to access.
 - Includes a **Cancel** button to return to the home page.
 - Includes **CSRF token** for security.
 - Extends `base.html`.
@@ -168,13 +196,16 @@ myLab/
 
 ## 🧭 URL Routes
 
-| Route | View Name | Description |
-|-------|-----------|-------------|
-| `/` | `post_list` | Home page — displays all blog posts |
-| `/create/` | `create_post` | Form page — create a new blog post |
-| `/edit/<int:post_id>/` | `edit_post` | Form page — edit an existing blog post |
-| `/delete/<int:post_id>/` | `delete_post` | Confirmation page — delete a blog post |
-| `/admin/` | `admin:index` | Django Admin interface |
+| Route | View Name | View Class | Description |
+|-------|-----------|------------|-------------|
+| `/` | `post_list` | `PostListView` | Home page — displays all blog posts |
+| `/post/<int:pk>/` | `post_detail` | `PostDetailView` | Post detail — full article view |
+| `/create/` | `create_post` | `PostCreateView` | Form page — create a new blog post (login required) |
+| `/edit/<int:post_id>/` | `edit_post` | `PostUpdateView` | Form page — edit an existing blog post (login required) |
+| `/delete/<int:post_id>/` | `delete_post` | `PostDeleteView` | Confirmation page — delete a blog post (login required) |
+| `/accounts/login/` | `login` | Django built-in | Login page |
+| `/accounts/logout/` | `logout` | Django built-in | Logout action |
+| `/admin/` | `admin:index` | Django Admin | Django Admin interface |
 
 ---
 
@@ -205,32 +236,49 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 4️⃣ Install dependencies
+### 4️⃣ Configure environment variables
+
+Create a `.env` file in the project root (`myLab/`) with the following content:
+
+```env
+SECRET_KEY='django-insecure-your-secret-key-here'
+DEBUG=True
+```
+
+> **Note:** The `.env` file is listed in `.gitignore` and will not be committed to version control.
+
+### 5️⃣ Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5️⃣ Run database migrations
+### 6️⃣ Run database migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 6️⃣ Create a superuser (for Django Admin)
+### 7️⃣ Collect static files (for deployment)
+
+```bash
+python manage.py collectstatic
+```
+
+### 8️⃣ Create a superuser (for Django Admin)
 
 ```bash
 python manage.py createsuperuser
 ```
 Follow the prompts to set a username, email, and password.
 
-### 7️⃣ Run the development server
+### 9️⃣ Run the development server
 
 ```bash
 python manage.py runserver
 ```
 
-### 8️⃣ Open the application
+### 🔟 Open the application
 
 Visit [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
 
@@ -271,16 +319,44 @@ This project demonstrates the following **Django concepts**:
 | **Django Models** | `Author` and `Post` models with `CharField`, `TextField`, `DateField` |
 | **ORM & Queries** | `Post.objects.all()`, `get_object_or_404()` |
 | **ForeignKey Relationships** | `Post.author → Author` — accessing author name via `post.author.name` |
-| **Function-Based Views** | `post_list`, `create_post`, `edit_post` with GET/POST handling |
-| **URL Routing** | `path()` with named routes and URL parameters (`<int:post_id>`) |
+| **Generic Class-Based Views** | `ListView`, `DetailView`, `CreateView`, `UpdateView`, `DeleteView` |
+| **Django Authentication** | Login, logout, and session management via Django's built-in auth system |
+| **LoginRequiredMixin** | Protects create, edit, and delete views from unauthenticated access |
+| **URL Routing** | `path()` with named routes and URL parameters (`<int:pk>`, `<int:post_id>`) |
 | **Template Inheritance** | `{% extends 'blog/base.html' %}` and `{% block %}` tags |
 | **Static Files** | `{% load static %}` and `{% static 'blog/style.css' %}` |
 | **ModelForms** | `PostForm` auto-generated from `Post` model, with instance editing |
 | **CRUD Operations** | Create, Read, Update, and Delete blog posts — safe deletion via POST request |
-| **Template Filters** | `|date:"F d, Y"` and `|truncatewords:25` |
+| **Template Filters** | `|date:"F d, Y"`, `|truncatewords:25`, and `|linebreaks` |
 | **CSRF Protection** | `{% csrf_token %}` in all forms |
+| **Environment Variables** | `SECRET_KEY` and `DEBUG` loaded from `.env` via `python-decouple` |
+| **Deployment Preparation** | `ALLOWED_HOSTS`, `STATIC_ROOT`, and `collectstatic` configured for production |
 | **Django Admin** | Registered models for admin interface management |
 
+
+---
+
+## 🔐 Environment Variables
+
+This project uses **`python-decouple`** to manage sensitive configuration outside of the source code.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SECRET_KEY` | Django's secret key for cryptographic signing | Required |
+| `DEBUG` | Enables/disables debug mode | `False` |
+
+Create a `.env` file in the project root (`myLab/`) to define these values. The `.env` file is excluded from version control via `.gitignore` to prevent accidental exposure of secrets.
+
+---
+
+## 🚀 Deployment Preparation
+
+The project includes several configurations to prepare for production deployment:
+
+- **`ALLOWED_HOSTS`** — Configured with `127.0.0.1` and `localhost`; update for your domain.
+- **`STATIC_ROOT`** — Set to `staticfiles/`, the directory where static files are collected.
+- **`collectstatic`** — Run `python manage.py collectstatic` to gather all static files into the `staticfiles/` directory.
+- **`gunicorn`** — Included in `requirements.txt` as a production-ready WSGI server.
 
 ---
 

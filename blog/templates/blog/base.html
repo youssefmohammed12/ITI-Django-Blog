@@ -13,8 +13,43 @@
 
 <div class="container">
 
+    <div class="top-bar">
+
+    <div class="logo">
+        📝 My Blog
+    </div>
+
+    <div class="user-area">
+
+        {% if user.is_authenticated %}
+
+            <span class="welcome">
+                Welcome, {{ user.username }}
+            </span>
+
+            <a href="{% url 'create_post' %}" class="btn">
+                + New Post
+            </a>
+
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button class="btn" type="submit">
+                    Logout
+                </button>
+            </form>
+
+        {% else %}
+
+            <a class="btn" href="{% url 'login' %}">
+                Login
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
     <header>
-        <h1>📝 My Blog</h1>
         <hr>
     </header>
 

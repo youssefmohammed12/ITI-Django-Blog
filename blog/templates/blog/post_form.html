@@ -1,23 +1,45 @@
-{% extends 'blog/base.html' %}
+{% extends "blog/base.html" %}
 
 {% block title %}
-Create Post
+{% if object %}
+    Edit Post
+{% else %}
+    Create Post
+{% endif %}
 {% endblock %}
 
 {% block content %}
 
-<h2>Create New Post</h2>
+<div class="card">
 
-<form method="POST" class="form">
+    <h2>
+        {% if object %}
+            Edit Post
+        {% else %}
+            Create New Post
+        {% endif %}
+    </h2>
 
-    {% csrf_token %}
+    <form method="post">
 
-    {{ form.as_p }}
+        {% csrf_token %}
 
-    <button class="btn" type="submit">
-        Save Post
-    </button>
+        {{ form.as_p }}
 
-</form>
+        <button class="btn" type="submit">
+            {% if object %}
+                Update Post
+            {% else %}
+                Create Post
+            {% endif %}
+        </button>
+
+        <a class="btn cancel" href="{% url 'post_list' %}">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
 
 {% endblock %}

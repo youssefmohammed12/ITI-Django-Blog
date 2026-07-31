@@ -1,56 +1,45 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
+
 from .models import Post
 from .forms import PostForm
 
-def post_list(request):
-    posts = Post.objects.all()
-
-    return render(request, 'blog/post_list.html', {
-        'posts': posts
-    })
+class PostListView(ListView):
+    model = Post
+    template_name = "blog/post_list.html"
+    context_object_name = "posts"
 
 
-def create_post(request):
-    if request.method == "POST":
-        form = PostForm(request.POST)
+class PostDetailView(DetailView):
+    model = Post
+    template_name = "blog/post_detail.html"
+    context_object_name = "post"
 
-        if form.is_valid():
-            form.save()
-            return redirect('post_list')
-
-    else:
-        form = PostForm()
-
-    return render(request, "blog/post_form.html", {
-        "form": form
-    })
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = "blog/post_form.html"
+    success_url = reverse_lazy("post_list")
 
 
-def edit_post(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
 
-    if request.method == "POST":
-        form = PostForm(request.POST, instance=post)
+class PostUpdateView(LoginRequiredMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = "blog/post_form.html"
+    success_url = reverse_lazy("post_list")
+    pk_url_kwarg = "post_id"
 
-        if form.is_valid():
-            form.save()
-            return redirect("post_list")
-    else:
-        form = PostForm(instance=post)
-
-    return render(request, "blog/edit_post.html", {
-        "form": form,
-        "post": post
-    })
-
-
-def delete_post(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-
-    if request.method == "POST":
-        post.delete()
-        return redirect("post_list")
-
-    return render(request, "blog/delete_post.html", {
-        "post": post
-    })
+class PostDeleteView(LoginRequiredMixin, DeleteView):
+    model = Post
+    template_name = "blog/delete_post.html"
+    success_url = reverse_lazy("post_list")
+    pk_url_kwarg = "post_id"

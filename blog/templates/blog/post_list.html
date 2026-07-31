@@ -1,4 +1,4 @@
-{% extends 'blog/base.html' %}
+{% extends "blog/base.html" %}
 
 {% block title %}
 Posts
@@ -6,42 +6,44 @@ Posts
 
 {% block content %}
 
-<h2>All Blog Posts</h2>
-
-<p>
-    <a class="btn" href="{% url 'create_post' %}">
-        + Create New Post
-    </a>
-</p>
 
 {% for post in posts %}
 
-<div class="card">
+<div class="card post-card">
 
-    <h3>{{ post.title }}</h3>
+    <h2>
+        <a href="{% url 'post_detail' post.id %}">
+            {{ post.title }}
+        </a>
+    </h2>
 
-    <p class="meta">
-        <strong>Author:</strong>
-        {{ post.author.name }}
-    </p>
-
-    <p class="meta">
-        <strong>Published:</strong>
-        {{ post.published_on|date:"F d, Y" }}
-    </p>
+ <p class="meta">
+    By {{ post.author.name }} |
+    {{ post.published_on|date:"F d, Y" }}
+</p>
 
     <p>
         {{ post.body|truncatewords:25 }}
     </p>
 
-    <div class="actions">
-    <a class="btn" href="{% url 'edit_post' post.id %}">
-        ✏ Edit
-    </a>
-    <a class="btn delete-btn"
-       href="{% url 'delete_post' post.id %}">
-        🗑 Delete
-    </a>
+    <hr>
+
+    <div class="button-group">
+
+        <a href="{% url 'post_detail' post.id %}" class="btn view-btn">
+            Read More
+        </a>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'edit_post' post.id %}" class="btn edit-btn">
+                Edit
+            </a>
+
+            <a href="{% url 'delete_post' post.id %}" class="btn delete-btn">
+                Delete
+            </a>
+        {% endif %}
+
     </div>
 
 </div>
